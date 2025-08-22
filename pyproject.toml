@@ -1,0 +1,64 @@
+[project]
+name = "Lukia-Campaign-Bot"
+version = "0.1.0"
+description = "AI-powered campaign creation bot with Telegram and REST API integration"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115.8",
+    "uvicorn>=0.32.1",
+    "pydantic>=2.10.3",
+    "pydantic-settings>=2.7.1",
+    "python-dotenv==1.0.1",
+    "httpx>=0.28.1",
+    "langchain-openai==0.2.14",
+    "langchain-core>=0.3.34",
+    "langgraph==0.2.61",
+    "python-telegram-bot>=21.9",
+    "asyncio>=3.4.3",
+    "typing-extensions>=4.12.2",
+    "python-multipart>=0.0.19",
+]
+[dependency-groups]
+dev = ["ruff>=0.9.4"]
+
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+respect-gitignore = true
+
+[tool.ruff.lint]
+extend-select = [
+    "E",   # Pycodestyle (Style Errors)
+    "W",   # Pycodestyle (Style Warnings)
+    "F",   # Pyflakes
+    "B",   # flake8-bugbear (best practices)
+    "BLE", # flake8-blind-except (safe exception handling)
+    "C4",  # flake8-comprehensions (better list/set/dict comprehensions)
+    "ERA", # flake8-eradicate (removes unnecessary commented-out code)
+    "I",   # isort (automatically sorts imports)
+    "N",   # pep8-naming (enforces PEP 8 naming conventions)
+    "PGH", # pygrep-hooks (detects potentially dangerous code patterns)
+    "PIE", # flake8-pie (suggests cleaner and more efficient code)
+    "RET", # flake8-return (ensures better function return handling)
+    "S",   # flake8-bandit (security-focused linting)
+    "TID", # flake8-tidy-imports (ensures clean and structured imports)
+]
+
+ignore = [
+    "ERA001", # No advertir sobre código comentado
+    "E501",   # Permitir líneas largas (Black ya las maneja)
+    "BLE001",
+]
+
+
+[tool.ruff.format]
+# Activa el formateador de Ruff (similar a Black)
+quote-style = "double"            # Usa comillas dobles como Black
+line-ending = "auto"
+docstring-code-format = true
+skip-magic-trailing-comma = false
+
+# [project.scripts]
+# start = "scripts.run_service:main"

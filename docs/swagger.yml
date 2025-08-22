@@ -1,0 +1,4204 @@
+  openapi: 3.0.0
+  info:
+    title: Lukia API
+    version: 1.0.0
+    description: API Documentation
+  servers:
+    - url: https://dev-api.lukia.marketing
+  components:
+    securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+        description: 'Enter your bearer token in the format: Bearer <token>'
+    schemas:
+      EventSummary:
+        type: object
+        properties:
+          eventId:
+            type: string
+            format: uuid
+            description: Unique identifier for the event
+          eventName:
+            type: string
+            description: Name of the event
+          messageGroups:
+            type: integer
+            description: Number of message groups in the event
+          leads:
+            type: integer
+            description: Total number of leads in the event
+          addedToContacts:
+            type: integer
+            description: Number of leads successfully added to contacts
+          addedToGroup:
+            type: integer
+            description: Number of leads successfully added to a group
+      MessageGroup:
+        type: object
+      Conversation:
+        type: object
+      CampaignSummary:
+        type: object
+        properties:
+          campaignId:
+            type: string
+            format: uuid
+            description: Unique identifier for the campaign
+          campaignName:
+            type: string
+            description: Name of the campaign
+          totalEvents:
+            type: integer
+            description: Total number of active events in the campaign
+          totalMessageGroups:
+            type: integer
+            description: Total number of message groups across all events
+          totalLeads:
+            type: integer
+            description: Total number of leads across all events
+          totalAddedToContacts:
+            type: integer
+            description: Total number of leads added to contacts across all events
+          totalAddedToGroup:
+            type: integer
+            description: Total number of leads added to groups across all events
+          events:
+            type: array
+            items:
+              $ref: '#/components/schemas/EventSummary'
+      AnalyticsSummary:
+        type: object
+        properties:
+          campaigns:
+            type: array
+            items:
+              $ref: '#/components/schemas/CampaignSummary'
+      CommunicationLog:
+        type: object
+        properties:
+          _id:
+            type: string
+          scheduleId:
+            type: string
+          channel:
+            type: string
+          integrationId:
+            type: string
+          leadId:
+            type: string
+          messageGroupId:
+            type: string
+          email:
+            type: string
+          phoneNumber:
+            type: string
+          message:
+            type: string
+          request:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              uri:
+                type: string
+              body:
+                type: string
+              headers:
+                type: string
+          response:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              statusCode:
+                type: integer
+              body:
+                type: string
+              headers:
+                type: string
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
+      CommunicationPlan:
+        type: object
+        properties:
+          _id:
+            type: string
+            description: The auto-generated ID of the communication plan
+          name:
+            type: string
+            description: The name of the communication plan
+          description:
+            type: string
+            description: A description of the communication plan
+          companyId:
+            type: string
+            nullable: true
+            description: ID of the company this plan belongs to (null for system-wide plans)
+          schedules:
+            type: array
+            items:
+              type: object
+              properties:
+                templateId:
+                  type: string
+                relativeSchedule:
+                  type: object
+                  properties:
+                    offsetDays:
+                      type: number
+                    offsetHours:
+                      type: number
+                    offsetMinutes:
+                      type: number
+                    fixedTime:
+                      type: object
+                      properties:
+                        hour:
+                          type: number
+                        minute:
+                          type: number
+                triggers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      templateId:
+                        type: string
+                        description: ID of the template to use
+                      triggerId:
+                        type: string
+                        description: ID of the trigger
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
+        required:
+          - name
+          - schedules
+      CommunicationSchedule:
+        type: object
+        properties:
+          _id:
+            type: string
+            description: The auto-generated ID of the schedule
+          companyId:
+            $ref: '#/components/schemas/Company'
+          status:
+            type: string
+            enum:
+              - scheduled
+              - sent
+              - inactive
+              - out-of-schedule
+            description: The status of the communication
+          eventId:
+            $ref: '#/components/schemas/Event'
+          templateName:
+            type: string
+            description: The name of the communication template
+          channel:
+            type: string
+            description: The communication channel type
+          title:
+            type: string
+            nullable: true
+            description: The title of the communication
+          summary:
+            type: string
+            nullable: true
+            description: A brief summary of the communication
+          content:
+            type: string
+            description: The main content of the communication
+          scheduleTimestamp:
+            type: string
+            format: date-time
+            description: When the communication is scheduled to be sent
+          createdAt:
+            type: string
+            format: date-time
+            description: When the schedule was created
+          updatedAt:
+            type: string
+            format: date-time
+            description: When the schedule was last updated
+        required:
+          - status
+          - eventId
+          - channel
+          - content
+          - scheduleTimestamp
+      CommunicationTemplate:
+        type: object
+        properties:
+          _id:
+            type: string
+            description: The auto-generated ID of the template
+          companyId:
+            type: string
+            nullable: true
+            description: ID of the company this template belongs to (null for system templates)
+          name:
+            type: string
+            description: Name of the template
+          channel:
+            type: string
+            enum:
+              - email
+              - whatsapp-group
+              - whatsapp-private
+              - sms
+            description: The communication channel this template is for
+          title:
+            type: string
+            nullable: true
+            description: Optional title for the template
+          summary:
+            type: string
+            nullable: true
+            description: Optional summary/description of the template
+          content:
+            type: string
+            description: The template content with placeholders
+          imageData:
+            type: string
+            format: binary
+            description: Binary image data (if any)
+          imageContentType:
+            type: string
+            description: MIME type of the uploaded image (if any)
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
+        required:
+          - _id
+          - name
+          - channel
+          - content
+      Company:
+        type: object
+        required:
+          - name
+        properties:
+          _id:
+            type: string
+            description: The unique identifier of the company
+            format: objectId
+          name:
+            type: string
+            description: The name of the company
+          createdAt:
+            type: string
+            format: date-time
+            description: The date when the company was created
+          updatedAt:
+            type: string
+            format: date-time
+            description: The date when the company was last updated
+          metadata:
+            type: object
+            additionalProperties: true
+            description: Additional metadata for the company
+        example:
+          _id: 507f1f77bcf86cd799439011
+          name: Acme Corp
+          createdAt: '2024-03-20T10:00:00Z'
+          updatedAt: '2024-03-20T10:00:00Z'
+      Integration:
+        type: object
+        required:
+          - name
+          - type
+          - config
+          - companyId
+        properties:
+          _id:
+            type: string
+            description: The auto-generated id of the integration
+          name:
+            type: string
+            description: The name of the integration
+          type:
+            type: string
+            enum:
+              - whatsapp
+              - openai-assistant
+              - whapi
+              - clickfunnels
+              - google-calendar
+              - green-api
+              - twilio-sms
+              - altiria-sms
+            description: The type of integration (e.g., 'whatsapp', 'slack', etc.)
+          companyId:
+            type: string
+            description: Reference to the company this integration belongs to
+            format: objectId
+          config:
+            type: object
+            description: Configuration data for the integration
+            oneOf:
+              - type: object
+                required:
+                  - accessToken
+                  - phoneNumberId
+                  - verifyToken
+                  - appSecret
+                  - whatsappBusinessAccountId
+                  - phoneNumber
+                properties:
+                  accessToken:
+                    type: string
+                    description: WhatsApp API access token
+                  phoneNumberId:
+                    type: string
+                    description: WhatsApp phone number ID
+                  verifyToken:
+                    type: string
+                    description: Token used to verify webhook requests from WhatsApp
+                  appSecret:
+                    type: string
+                    description: Meta App Secret used to verify webhook signatures
+                  whatsappBusinessAccountId:
+                    type: string
+                    description: WhatsApp Business Account ID (optional)
+                  phoneNumber:
+                    type: string
+                    description: The WhatsApp phone number in E.164 format (e.g., +1234567890)
+              - type: object
+                required:
+                  - openApiKey
+                  - assistantId
+                  - role
+                properties:
+                  openApiKey:
+                    type: string
+                    description: OpenAI API key
+                  assistantId:
+                    type: string
+                    description: OpenAI Assistant ID
+                  role:
+                    type: string
+                    enum:
+                      - register
+                      - triage
+                    description: Role of the assistant behavior
+              - type: object
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string
+                    description: WHAPI access token
+                  googleConnectionToken:
+                    type: string
+                    description: Optional Google connection token for WHAPI
+              - type: object
+                required:
+                  - apiKey
+                  - workspaceId
+                properties:
+                  apiKey:
+                    type: string
+                    description: ClickFunnels API key
+                  workspaceId:
+                    type: string
+                    description: ClickFunnels workspace ID
+              - type: object
+                required:
+                  - accessToken
+                properties:
+                  accessToken:
+                    type: string
+                    description: Google Calendar access token
+          createdAt:
+            type: string
+            format: date-time
+            description: The date when the integration was created
+          updatedAt:
+            type: string
+            format: date-time
+            description: The date when the integration was last updated
+        example:
+          _id: 60d21b4667d0d8992e610c85
+          name: WhatsApp Integration
+          type: whatsapp
+          companyId: 507f1f77bcf86cd799439011
+          config:
+            apiKey: '123456'
+            workspaceId: '351647'
+            phoneNumberId: '123456789'
+            accessToken: abc123
+            verifyToken: my-secret-token
+          createdAt: '2024-03-20T10:00:00Z'
+          updatedAt: '2024-03-20T10:00:00Z'
+      LeadInput:
+        type: object
+        required:
+          - eventId
+          - conversationId
+          - status
+        properties:
+          eventId:
+            type: string
+          conversationId:
+            type: string
+          messageGroupId:
+            type: string
+          phone:
+            type: string
+          email:
+            type: string
+          status:
+            type: string
+            enum:
+              - new
+              - processed
+          fullName:
+            type: string
+          stage:
+            type: string
+            enum:
+              - started
+              - inquiring
+              - lead
+              - completed
+              - not_interested
+              - abandoned
+          brainFlagOptOut:
+            type: boolean
+          followUp:
+            type: string
+            enum:
+              - ''
+              - scheduled
+              - in-progress
+              - completed
+          followUpCount:
+            type: integer
+          completeLeadProcess:
+            type: string
+            enum:
+              - ''
+              - scheduled
+              - in-progress
+              - completed
+              - error
+          addedToContacts:
+            type: string
+            enum:
+              - ''
+              - success
+              - error
+          addedToGroup:
+            type: string
+            enum:
+              - ''
+              - success
+              - error
+      Lead:
+        allOf:
+          - $ref: '#/components/schemas/LeadInput'
+          - type: object
+            properties:
+              _id:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+      Campaign:
+        type: object
+        required:
+          - name
+          - externalCampaignId
+          - companyId
+        properties:
+          name:
+            type: string
+            description: The name of the campaign
+          description:
+            type: string
+            description: A description of the campaign
+          product:
+            type: string
+            description: The product associated with the campaign
+          country:
+            type: string
+            description: The target country for the campaign
+          externalCampaignId:
+            type: string
+            description: The external ID of the campaign
+          companyId:
+            type: string
+            format: objectId
+            description: Reference to the company this campaign belongs to
+          messagingIntegrationId:
+            type: string
+            format: objectId
+            description: Reference to the messaging integration used in this campaign
+          communicationPlanIds:
+            type: array
+            items:
+              type: string
+              format: objectId
+            description: References to the communication plans associated with this campaign
+          status:
+            type: string
+            enum:
+              - active
+              - inactive
+            default: active
+            description: The current status of the campaign
+          createdAt:
+            type: string
+            format: date-time
+            description: The date when the campaign was created
+          updatedAt:
+            type: string
+            format: date-time
+            description: The date when the campaign was last updated
+        example:
+          name: Summer Sale 2024
+          description: Promotional campaign for summer products
+          product: Seasonal Collection
+          country: US
+          externalCampaignId: campaign_123
+          companyId: 507f1f77bcf86cd799439011
+          messagingIntegrationId: 507f1f77bcf86cd799439012
+          status: active
+          createdAt: '2024-03-20T10:00:00Z'
+          updatedAt: '2024-03-20T10:00:00Z'
+      Event:
+        type: object
+        required:
+          - name
+          - campaignId
+          - targetDate
+          - status
+          - icon
+        properties:
+          name:
+            type: string
+            description: The name of the event
+          campaignId:
+            type: string
+            format: objectId
+            description: The ID of the campaign this event belongs to
+          targetDate:
+            type: string
+            format: date-time
+            description: The target date for the event
+          status:
+            type: string
+            enum:
+              - scheduled
+              - active
+              - closed
+            description: The current status of the event
+          icon:
+            type: string
+            description: The icon URL or base64 for the event
+          admins:
+            type: array
+            items:
+              type: string
+            description: Array of admin identifiers (phone nubmers without + sign)
+          context:
+            type: string
+            description: Additional context or information about the event
+          targetTimezone:
+            type: string
+            description: The timezone for the event's target date
+          metadata:
+            type: object
+            description: Additional metadata for the event
+          speaker:
+            type: string
+            description: Optional name of the speaker for the event
+          createdAt:
+            type: string
+            format: date-time
+            description: The date when the event was created
+          updatedAt:
+            type: string
+            format: date-time
+            description: The date when the event was last updated
+        example:
+          _id: 507f1f77bcf86cd799439011
+          name: Summer Launch Event
+          campaignId: 507f1f77bcf86cd799439012
+          targetDate: '2024-06-01T18:00:00Z'
+          status: scheduled
+          icon: data:image/png;base64,...
+          admins:
+            - '34657125789'
+            - '573103435489'
+          context: Additional information about the event
+          speaker: John Doe
+          metadata:
+            location: Online
+            capacity: 100
+            tags:
+              - tech
+              - launch
+          createdAt: '2024-03-20T10:00:00Z'
+          updatedAt: '2024-03-20T10:00:00Z'
+  security:
+    - bearerAuth: []
+  paths:
+    /analytics/events/summary:
+      get:
+        summary: Get summary of all active events and campaigns with aggregated metrics
+        tags:
+          - Analytics
+        security:
+          - bearerAuth: []
+        responses:
+          '200':
+            description: Returns a summary of active events and campaigns
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/AnalyticsSummary'
+          '401':
+            description: Unauthorized
+          '500':
+            description: Server error
+    /campaign:
+      post:
+        summary: Create a new campaign
+        tags:
+          - Campaign
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                  - externalCampaignId
+                  - companyId
+                  - messagingIntegrationId
+                properties:
+                  name:
+                    type: string
+                    description: The name of the campaign
+                  description:
+                    type: string
+                    description: The description of the campaign
+                  externalCampaignId:
+                    type: string
+                    description: External ID for the campaign
+                  product:
+                    type: string
+                    description: Product associated with the campaign
+                  country:
+                    type: string
+                    description: Country where the campaign is active
+                  companyId:
+                    type: string
+                    description: ID of the company this campaign belongs to
+                  messagingIntegrationId:
+                    type: string
+                    description: ID of the messaging integration
+                  communicationPlanIds:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs of the communication plans to associate with this campaign
+                  metadata:
+                    type: object
+                    description: Optional metadata for the campaign
+                    additionalProperties: true
+        responses:
+          '201':
+            description: Campaign created successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Campaign'
+          '400':
+            description: Invalid input
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Failed to create campaign
+          '401':
+            description: Unauthorized - Invalid or missing token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Unauthorized
+      get:
+        summary: Get all campaigns with sorting, pagination and search
+        tags:
+          - Campaign
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              minimum: 1
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 10
+            description: Number of items per page
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - name
+                - status
+                - _id
+                - externalCampaignId
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+          - in: query
+            name: search
+            schema:
+              type: string
+            description: Search term to filter campaigns by name or externalCampaignId (case-insensitive)
+          - in: query
+            name: status
+            schema:
+              type: string
+              enum:
+                - active
+                - inactive
+                - closed
+            description: Status to filter the campaigns
+        responses:
+          '200':
+            description: List of campaigns with pagination info
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    campaigns:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Campaign'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of campaigns
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Failed to fetch campaigns
+    /campaign/{campaignId}:
+      patch:
+        summary: Update a campaign
+        description: Updates specific fields of an existing campaign
+        tags:
+          - Campaign
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: campaignId
+            required: true
+            schema:
+              type: string
+            description: The ID of the campaign to update
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The new name of the campaign
+                  description:
+                    type: string
+                    description: The new description of the campaign
+                  product:
+                    type: string
+                    description: The new product associated with the campaign
+                  country:
+                    type: string
+                    description: The new country where the campaign is active
+                  messagingIntegrationId:
+                    type: string
+                    description: The new messaging integration ID
+                  communicationPlanIds:
+                    type: array
+                    items:
+                      type: string
+                      format: objectId
+                    description: The new communication plan IDs
+                  status:
+                    type: string
+                    enum:
+                      - active
+                      - inactive
+                      - closed
+                    description: The new status of the campaign
+                  metadata:
+                    type: object
+                    description: Optional metadata to update for the campaign
+                    additionalProperties: true
+        responses:
+          '200':
+            description: Campaign updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Campaign'
+          '400':
+            description: Invalid request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: 'Invalid status value. Must be one of: active, inactive'
+          '401':
+            description: Unauthorized - Invalid or missing token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Unauthorized
+          '404':
+            description: Campaign not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Campaign not found
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Internal server error
+      get:
+        summary: Get a campaign by ID
+        description: Retrieves a specific campaign by its ID
+        tags:
+          - Campaign
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: campaignId
+            required: true
+            schema:
+              type: string
+            description: The ID of the campaign to retrieve
+        responses:
+          '200':
+            description: Campaign retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Campaign'
+          '400':
+            description: Invalid campaign ID
+          '404':
+            description: Campaign not found
+          '500':
+            description: Server error
+    /communication/log:
+      get:
+        summary: Get list of communication logs
+        description: Retrieve communication logs with optional filters, pagination, and sorting.
+        tags:
+          - Communication Log
+        parameters:
+          - in: query
+            name: scheduleId
+            schema:
+              type: string
+            description: Filter by schedule ID
+          - in: query
+            name: eventId
+            schema:
+              type: string
+            description: Filter by event ID
+          - in: query
+            name: channel
+            schema:
+              type: string
+            description: Filter by channel
+          - in: query
+            name: leadId
+            schema:
+              type: string
+            description: Filter by lead ID
+          - in: query
+            name: messageGroupId
+            schema:
+              type: string
+            description: Filter by message group ID
+          - in: query
+            name: email
+            schema:
+              type: string
+            description: Filter by email address
+          - in: query
+            name: phoneNumber
+            schema:
+              type: string
+            description: Filter by phone number
+          - in: query
+            name: page
+            schema:
+              type: integer
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              default: 20
+            description: Number of results per page
+          - in: query
+            name: sortField
+            schema:
+              type: string
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sorting order
+        responses:
+          '200':
+            description: List of communication logs
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    page:
+                      type: integer
+                    limit:
+                      type: integer
+                    total:
+                      type: integer
+                    pages:
+                      type: integer
+                    items:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/CommunicationLog'
+          '400':
+            description: Invalid request parameters
+          '500':
+            description: Internal server error
+    /communication/log/{logId}:
+      get:
+        summary: Get a communication log by ID
+        description: Retrieve a single communication log by its unique identifier.
+        tags:
+          - Communication Log
+        parameters:
+          - in: path
+            name: logId
+            required: true
+            schema:
+              type: string
+            description: The ID of the communication log
+        responses:
+          '200':
+            description: Communication log details
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/CommunicationLog'
+          '400':
+            description: Invalid ID format
+          '404':
+            description: Communication log not found
+          '500':
+            description: Internal server error
+    /communication/plan:
+      post:
+        summary: Create a new communication plan
+        tags:
+          - Communication Plan
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                properties:
+                  name:
+                    type: string
+                    description: Name of the communication plan
+                  description:
+                    type: string
+                    description: Description of the communication plan
+                  companyId:
+                    type: string
+                    description: ID of the company this plan belongs to (optional)
+                  schedules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        templateId:
+                          type: string
+                          description: ID of the template to use
+                        relativeSchedule:
+                          type: object
+                          properties:
+                            offsetDays:
+                              type: number
+                            offsetHours:
+                              type: number
+                            offsetMinutes:
+                              type: number
+                            fixedTime:
+                              type: object
+                              properties:
+                                hour:
+                                  type: number
+                                minute:
+                                  type: number
+                  triggers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        templateId:
+                          type: string
+                          description: ID of the template to use
+                        triggerId:
+                          type: string
+                          description: ID of the trigger
+        responses:
+          '201':
+            description: Communication plan created successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/CommunicationPlan'
+          '400':
+            description: Invalid input
+          '401':
+            description: Unauthorized
+          '500':
+            description: Server error
+      get:
+        summary: Get all communication plans with pagination, sorting, and search
+        tags:
+          - Communication Plan
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              minimum: 1
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 10
+            description: Number of items per page
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - name
+                - _id
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order (asc or desc)
+          - in: query
+            name: search
+            schema:
+              type: string
+            description: Search term to filter plans by name
+          - in: query
+            name: companyId
+            schema:
+              type: string
+              nullable: true
+            description: Filter plans by company ID. Use 'null' to get plans with no company.
+        responses:
+          '200':
+            description: List of communication plans with pagination info
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    communicationPlans:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/CommunicationPlan'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of items
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '400':
+            description: Invalid input parameters
+          '500':
+            description: Server error
+    /communication/plan/{communicationPlanId}:
+      get:
+        summary: Get a communication plan by ID
+        description: Retrieves a specific communication plan by its ID
+        tags:
+          - Communication Plan
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: communicationPlanId
+            required: true
+            schema:
+              type: string
+            description: The ID of the communication plan to retrieve
+        responses:
+          '200':
+            description: Communication plan retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/CommunicationPlan'
+          '400':
+            description: Invalid communication plan ID
+          '403':
+            description: Forbidden - User doesn't have access to this plan
+          '404':
+            description: Communication plan not found
+          '500':
+            description: Server error
+      patch:
+        summary: Update a communication plan
+        description: Updates specific fields of an existing communication plan
+        tags:
+          - Communication Plan
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: communicationPlanId
+            required: true
+            schema:
+              type: string
+            description: The ID of the communication plan to update
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The new name of the communication plan
+                  companyId:
+                    type: string
+                    nullable: true
+                    description: The new company ID (set to null for system-wide plans)
+                  schedules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        templateId:
+                          type: string
+                        relativeSchedule:
+                          type: object
+                          properties:
+                            offsetDays:
+                              type: number
+                            offsetHours:
+                              type: number
+                            offsetMinutes:
+                              type: number
+                            fixedTime:
+                              type: object
+                              properties:
+                                hour:
+                                  type: number
+                                minute:
+                                  type: number
+                  triggers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        templateId:
+                          type: string
+                          description: ID of the template to use
+                        triggerId:
+                          type: string
+                          description: ID of the trigger
+        responses:
+          '200':
+            description: Communication plan updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/CommunicationPlan'
+          '400':
+            description: Invalid request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Invalid request
+          '401':
+            description: Unauthorized - Invalid or missing token
+          '403':
+            description: Forbidden - User doesn't have permission to update this plan
+          '404':
+            description: Communication plan not found
+          '500':
+            description: Server error
+      delete:
+        summary: Delete a communication plan
+        description: Deletes a specific communication plan if the user has appropriate access rights.
+        tags:
+          - Communication Plan
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: communicationPlanId
+            required: true
+            schema:
+              type: string
+            description: The ID of the communication plan to delete
+        responses:
+          '200':
+            description: Communication plan deleted successfully
+          '400':
+            description: Missing communication plan ID
+          '403':
+            description: User does not have access to this communication plan
+          '404':
+            description: Communication plan not found
+          '500':
+            description: Server error
+    /communication/plan/test:
+      post:
+        summary: Test a communication plan by sending test messages
+        description: Creates test schedules for a communication plan using a specific event, scheduling all messages to be sent immediately for testing purposes
+        tags:
+          - Communication Plan
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - communicationPlanId
+                  - eventId
+                properties:
+                  communicationPlanId:
+                    type: string
+                    format: objectId
+                    description: ID of the communication plan to test
+                    example: 507f1f77bcf86cd799439011
+                  eventId:
+                    type: string
+                    format: objectId
+                    description: ID of the event to use for testing
+                    example: 507f1f77bcf86cd799439012
+        responses:
+          '200':
+            description: Communication plan test scheduled successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Communication Plan scheduled for now!
+          '400':
+            description: Bad request - Invalid input data
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Invalid request data
+                    error:
+                      type: string
+          '401':
+            description: Unauthorized - Invalid or missing authentication token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Unauthorized access
+          '404':
+            description: Not found - Communication plan or event not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Communication plan not found
+          '500':
+            description: Internal server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Error testing communication plan
+                    error:
+                      type: string
+    /communication/schedule/{scheduleId}:
+      get:
+        summary: Get a communication schedule by ID
+        description: Retrieves a specific communication schedule by its ID
+        tags:
+          - Communication Schedule
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: scheduleId
+            required: true
+            schema:
+              type: string
+            description: The ID of the communication schedule to retrieve
+        responses:
+          '200':
+            description: Communication schedule retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/CommunicationSchedule'
+          '400':
+            description: Invalid schedule ID
+          '404':
+            description: Communication schedule not found
+          '500':
+            description: Server error
+    /communication/schedule:
+      get:
+        summary: Get all communication schedules with filtering and pagination
+        tags:
+          - Communication Schedule
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              minimum: 1
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 10
+            description: Number of items per page
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - scheduleTimestamp
+                - status
+              default: scheduleTimestamp
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+          - in: query
+            name: status
+            schema:
+              type: string
+              enum:
+                - scheduled
+                - sent
+                - out-of-schedule
+                - inactive
+            description: Filter by status
+          - in: query
+            name: channel
+            schema:
+              type: string
+            description: Filter by channel type
+          - in: query
+            name: eventId
+            schema:
+              type: string
+            description: Filter by event ID
+          - in: query
+            name: startDate
+            schema:
+              type: string
+              format: date-time
+            description: Filter schedules after this date (ISO 8601 format)
+          - in: query
+            name: endDate
+            schema:
+              type: string
+              format: date-time
+            description: Filter schedules before this date (ISO 8601 format)
+        responses:
+          '200':
+            description: List of communication schedules with pagination info
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    schedules:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/CommunicationSchedule'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of schedules
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Failed to fetch communication schedules
+    /communication/schedule/schedule-event-communications/{eventId}:
+      post:
+        summary: Generate communication schedule for an event
+        description: Generates the communication schedule associated with the given event. Requires admin or manager authentication.
+        tags:
+          - Communication Schedule
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: eventId
+            required: true
+            schema:
+              type: string
+            description: ID of the event
+        responses:
+          '200':
+            description: Event schedule generated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Event schedule generated successfully
+          '404':
+            description: Event not found
+          '500':
+            description: Internal server error
+    /communication/schedule/{scheduleId}/image:
+      post:
+        summary: Upload an image for a communication schedule
+        tags:
+          - Communication Schedule
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: scheduleId
+            required: true
+            schema:
+              type: string
+            description: ID of the schedule to upload image for
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  image:
+                    type: string
+                    format: binary
+                    description: The image file to upload (JPEG, JPG, or PNG)
+        responses:
+          '200':
+            description: Image uploaded successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Image uploaded successfully
+          '400':
+            description: No file uploaded or invalid file type
+          '403':
+            description: Forbidden - User doesn't have access to this schedule
+          '404':
+            description: Schedule not found
+          '500':
+            description: Server error
+      get:
+        summary: Get the uploaded image for a communication schedule
+        tags:
+          - Communication Schedule
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: scheduleId
+            required: true
+            schema:
+              type: string
+            description: ID of the schedule to get the image for
+        responses:
+          '200':
+            description: Image retrieved successfully
+            content:
+              image/*:
+                schema:
+                  type: string
+                  format: binary
+          '403':
+            description: Forbidden - User doesn't have access to this schedule
+          '404':
+            description: Schedule not found or schedule has no image
+          '500':
+            description: Server error
+    /communication/template:
+      post:
+        summary: Create a new communication template
+        tags:
+          - Communication Template
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                  - channel
+                  - content
+                properties:
+                  companyId:
+                    type: string
+                    nullable: true
+                  name:
+                    type: string
+                  channel:
+                    type: string
+                    enum:
+                      - email
+                      - whatsapp-group
+                      - whatsapp-private
+                      - sms
+                  title:
+                    type: string
+                  content:
+                    type: string
+                  summary:
+                    type: string
+        responses:
+          '201':
+            description: Created successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/CommunicationTemplate'
+          '400':
+            description: Missing required fields
+          '403':
+            description: Forbidden due to ownership or permissions
+          '500':
+            description: Server error
+      get:
+        summary: List communication templates with pagination and filtering
+        tags:
+          - Communication Template
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              default: 10
+              maximum: 100
+            description: Number of items per page (max 100)
+          - in: query
+            name: companyId
+            schema:
+              type: string
+            description: Filter templates by company ID
+          - in: query
+            name: search
+            schema:
+              type: string
+            description: Search term to filter templates by name or title
+          - in: query
+            name: channel
+            schema:
+              type: string
+              enum:
+                - email
+                - whatsapp
+            description: Filter templates by channel
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - _id
+                - summary
+                - companyId
+                - name
+                - createdAt
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order (asc or desc)
+        responses:
+          '200':
+            description: List of communication templates
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/CommunicationTemplate'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of items
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '500':
+            description: Server error
+    /communication/template/{templateId}:
+      patch:
+        summary: Replace an existing communication template by ID
+        tags:
+          - Communication Template
+        parameters:
+          - in: path
+            name: templateId
+            required: true
+            schema:
+              type: string
+            description: ID of the template to update
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  channel:
+                    type: string
+                    enum:
+                      - email
+                      - whatsapp-group
+                      - whatsapp-private
+                      - sms
+                  title:
+                    type: string
+                  content:
+                    type: string
+        responses:
+          '200':
+            description: Template updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/CommunicationTemplate'
+          '400':
+            description: Missing required fields or invalid input
+          '403':
+            description: Forbidden due to ownership or permissions
+          '500':
+            description: Server error
+      get:
+        summary: Get a communication template by ID
+        tags:
+          - Communication Template
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: templateId
+            required: true
+            description: ID of the template to retrieve
+            schema:
+              type: string
+        responses:
+          '200':
+            description: Template retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/CommunicationTemplate'
+          '403':
+            description: Forbidden – user does not have access to this template
+          '404':
+            description: Template not found
+          '500':
+            description: Server error
+      delete:
+        summary: Delete a communication template by ID
+        tags:
+          - Communication Template
+        parameters:
+          - in: path
+            name: templateId
+            required: true
+            schema:
+              type: string
+            description: ID of the template to delete
+        responses:
+          '200':
+            description: Template deleted successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Template deleted
+          '403':
+            description: Forbidden due to ownership or permissions
+          '404':
+            description: Template not found
+          '500':
+            description: Server error
+    /communication/template/export/csv:
+      get:
+        summary: Export communication templates as CSV
+        tags:
+          - Communication Template
+        parameters:
+          - in: query
+            name: companyId
+            schema:
+              type: string
+            description: Filter by company ID. Use 'null' for system templates.
+          - in: query
+            name: channel
+            schema:
+              type: string
+              enum:
+                - email
+                - sms
+                - push
+                - whatsapp
+                - webhook
+            description: Filter by channel type
+        responses:
+          '200':
+            description: CSV file containing templates
+            content:
+              text/csv:
+                schema:
+                  type: string
+                  format: binary
+          '400':
+            description: Invalid parameters
+          '403':
+            description: Forbidden - insufficient permissions
+          '500':
+            description: Server error
+    /communication/template/{templateId}/image:
+      post:
+        summary: Upload an image for a communication template
+        tags:
+          - Communication Template
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: templateId
+            required: true
+            schema:
+              type: string
+            description: ID of the template to upload image for
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  image:
+                    type: string
+                    format: binary
+                    description: The image file to upload (JPEG, JPG, or PNG)
+        responses:
+          '200':
+            description: Image uploaded successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Image uploaded successfully
+          '400':
+            description: No file uploaded or invalid file type
+          '403':
+            description: Forbidden - User doesn't have access to this template
+          '404':
+            description: Template not found
+          '500':
+            description: Server error
+      get:
+        summary: Get the uploaded image for a communication template
+        tags:
+          - Communication Template
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: templateId
+            required: true
+            schema:
+              type: string
+            description: ID of the template to get the image for
+        responses:
+          '200':
+            description: Image retrieved successfully
+            content:
+              image/*:
+                schema:
+                  type: string
+                  format: binary
+          '403':
+            description: Forbidden - User doesn't have access to this template
+          '404':
+            description: Template not found or template has no image
+          '500':
+            description: Server error
+    /communication/template/{templateId}/send-test:
+      post:
+        summary: Send a test version of a communication template
+        tags:
+          - Communication Template
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: templateId
+            required: true
+            schema:
+              type: string
+            description: ID of the template to send
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    description: Email address (required for email templates)
+                  phonenumber:
+                    type: string
+                    description: Phone number in international format (required for WhatsApp private messages)
+                  eventId:
+                    type: string
+                    description: Event ID to get the template variables
+                  messageGroupId:
+                    type: string
+                    description: Message group ID (required for WhatsApp group messages)
+        responses:
+          '200':
+            description: Test message sent successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Test message sent successfully
+          '400':
+            description: |
+              Invalid request parameters. One of the following is required: - email (for email templates) - phonenumber (for WhatsApp private messages) - messageGroupId (for WhatsApp group messages)
+          '403':
+            description: Forbidden - User doesn't have permission to access this template
+          '404':
+            description: |
+              Not Found. One of the following might be missing: - Template not found - Event not found - Message group not found (for group messages)
+          '500':
+            description: Server error while sending the test message
+    /company/{companyId}:
+      patch:
+        summary: Update a company's name or metadata
+        tags:
+          - Companies
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: companyId
+            required: true
+            schema:
+              type: string
+            description: The ID of the company to update
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The new name for the company
+                  metadata:
+                    type: object
+                    description: The metadata to update (will be merged with existing metadata)
+        responses:
+          '200':
+            description: Company updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Company'
+          '400':
+            description: Invalid request or company ID
+          '404':
+            description: Company not found
+          '500':
+            description: Server error
+      get:
+        summary: Get a company by ID
+        description: Retrieves a specific company by its ID
+        tags:
+          - Companies
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: companyId
+            required: true
+            schema:
+              type: string
+            description: The ID of the company to retrieve
+        responses:
+          '200':
+            description: Company retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Company'
+          '400':
+            description: Invalid company ID
+          '404':
+            description: Company not found
+          '500':
+            description: Server error
+    /company:
+      post:
+        summary: Create a new company
+        tags:
+          - Companies
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                properties:
+                  name:
+                    type: string
+                    description: The name of the company
+                    example: Acme Corp
+        responses:
+          '201':
+            description: Company created successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Company'
+          '400':
+            description: Company name is required
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Company name is required
+          '409':
+            description: Company with this name already exists
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: A company with this name already exists
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Error creating company
+                    error:
+                      type: string
+                      example: Error message details
+      get:
+        summary: Get all companies with filtering, sorting and pagination
+        tags:
+          - Companies
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              minimum: 1
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 10
+            description: Number of items per page
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - name
+                - _id
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+          - in: query
+            name: search
+            schema:
+              type: string
+            description: Search term to filter companies by name or ID
+        responses:
+          '200':
+            description: List of companies with pagination info
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    companies:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Company'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of companies
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '500':
+            description: Server error
+    /conversation/{id}:
+      get:
+        summary: Get a conversation by ID
+        tags:
+          - Conversation
+        parameters:
+          - in: path
+            name: id
+            required: true
+            schema:
+              type: string
+            description: Conversation ID
+        responses:
+          '200':
+            description: Conversation found and returned
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Conversation'
+          '404':
+            description: Conversation not found
+      delete:
+        summary: Delete a conversation
+        tags:
+          - Conversation
+        parameters:
+          - in: path
+            name: id
+            required: true
+            schema:
+              type: string
+            description: Conversation ID
+        responses:
+          '204':
+            description: Conversation deleted successfully
+          '404':
+            description: Conversation not found
+    /conversation:
+      get:
+        summary: Retrieve a list of conversations with optional filters and pagination
+        tags:
+          - Conversation
+        parameters:
+          - in: query
+            name: eventId
+            schema:
+              type: string
+            description: Filter by event ID
+          - in: query
+            name: from
+            schema:
+              type: string
+            description: Filter by sender's phone number (partial match)
+          - in: query
+            name: to
+            schema:
+              type: string
+            description: Filter by recipient's phone number (partial match)
+          - in: query
+            name: companyId
+            schema:
+              type: string
+            description: Filter by company ID
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              default: 20
+            description: Number of results per page
+          - in: query
+            name: page
+            schema:
+              type: integer
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - lastMessageAt
+                - createdAt
+                - updatedAt
+              default: lastMessageAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+        responses:
+          '200':
+            description: List of conversations retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Conversation'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                        page:
+                          type: integer
+                        limit:
+                          type: integer
+                        pages:
+                          type: integer
+    /conversation/phonenumber/{phone}:
+      delete:
+        summary: Delete conversations by phone number
+        description: Deletes all conversations (and their messages) where the provided phone matches either the `from` or `to` fields.
+        tags:
+          - Conversation
+        parameters:
+          - in: path
+            name: phone
+            required: true
+            schema:
+              type: string
+            description: Phone number to match against `from` or `to`
+        responses:
+          '200':
+            description: Deletion result
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                    deletedConversations:
+                      type: integer
+                    deletedMessages:
+                      type: integer
+          '400':
+            description: Missing or invalid parameters
+    /conversation/{conversationId}/instruction:
+      post:
+        summary: Add an instruction to a conversation
+        description: Processes a user instruction in an existing conversation
+        tags:
+          - Conversation
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: conversationId
+            required: true
+            schema:
+              type: string
+            description: The ID of the conversation
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - instruction
+                properties:
+                  instruction:
+                    type: string
+                    description: The instruction to process
+        responses:
+          '200':
+            description: Instruction processed successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                    data:
+                      type: object
+                      properties:
+                        response:
+                          type: string
+          '400':
+            description: Invalid request parameters
+          '404':
+            description: Conversation not found or missing required integrations
+    /conversation/{threadId}/instruction:
+      post:
+        summary: Add an instruction to a conversation thread
+        description: Adds an instruction to an existing conversation thread using the specified assistant
+        tags:
+          - Conversation
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: threadId
+            required: true
+            schema:
+              type: string
+            description: The ID of the conversation thread
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - instruction
+                  - companyId
+                properties:
+                  instruction:
+                    type: string
+                    description: The instruction to add to the conversation
+                    example: Please follow up on the previous message. The user hasn't replied in 24 hours.
+                  companyId:
+                    type: string
+                    description: The ID of the company that owns the assistant
+                    example: 507f1f77bcf86cd799439011
+        responses:
+          '200':
+            description: Instruction added successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      type: object
+                      properties:
+                        runId:
+                          type: string
+                          description: The ID of the created run
+                          example: run_abc123
+          '400':
+            description: Invalid request parameters
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Thread ID, instruction, and company ID are required
+          '404':
+            description: No OpenAI Assistant integration found for the company
+          '500':
+            description: Error adding instruction to conversation
+    /event:
+      post:
+        summary: Create a new event
+        description: Creates a new event with status 'scheduled'
+        tags:
+          - Events
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                  - campaignId
+                  - targetDate
+                  - targetTimezone
+                properties:
+                  name:
+                    type: string
+                    description: The name of the event
+                  campaignId:
+                    type: string
+                    description: The ID of the campaign this event belongs to
+                  targetDate:
+                    type: string
+                    format: date-time
+                    description: The target date for the event in the specified timezone
+                  targetTimezone:
+                    type: string
+                    description: IANA timezone string (e.g., America/Bogota)
+                    example: America/Bogota
+                  icon:
+                    type: string
+                    description: The icon URL or base64 for the event
+                  admins:
+                    type: array
+                    items:
+                      type: string
+                    description: Array of admin phone numbers without + sign
+                  context:
+                    type: string
+                    description: The context for the event
+                  speaker:
+                    type: string
+                    description: Optional name of the speaker for the event
+                  metadata:
+                    type: object
+                    description: Additional JSON data for the event
+        responses:
+          '201':
+            description: Event created successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Event'
+          '400':
+            description: Missing required fields
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Missing required fields or invalid timezone format
+          '401':
+            description: Unauthorized - Invalid or missing token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Unauthorized
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Error creating event
+                    error:
+                      type: string
+                      example: Error message details
+      get:
+        summary: Get all events with filtering, sorting and pagination
+        tags:
+          - Events
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              minimum: 1
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 10
+            description: Number of items per page
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - name
+                - targetDate
+                - status
+                - _id
+                - campaignId
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+          - in: query
+            name: search
+            schema:
+              type: string
+            description: Search term to filter events by name, status, admin phone number, _id, or campaignId (case-insensitive)
+          - in: query
+            name: campaignId
+            schema:
+              type: string
+            description: Filter by campaign ID
+          - in: query
+            name: targetDateStart
+            schema:
+              type: string
+              format: date-time
+            description: Filter events with target date after this date
+          - in: query
+            name: targetDateEnd
+            schema:
+              type: string
+              format: date-time
+            description: Filter events with target date before this date
+        responses:
+          '200':
+            description: List of events with pagination info
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    events:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Event'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of events
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '500':
+            description: Server error
+    /event/uploadImage/{eventId}:
+      post:
+        summary: Upload an image for an event
+        description: Uploads a JPEG, JPG, or PNG image for an event
+        tags:
+          - Events
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: eventId
+            required: true
+            schema:
+              type: string
+            description: The ID of the event
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  image:
+                    type: string
+                    format: binary
+                    description: The image file to upload (JPEG, JPG, or PNG)
+        responses:
+          '200':
+            description: Image uploaded successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Image uploaded successfully
+          '400':
+            description: Invalid file type or missing file
+          '401':
+            description: Unauthorized - Invalid or missing token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Unauthorized
+          '404':
+            description: Event not found
+          '500':
+            description: Server error
+    /event/image/{eventId}:
+      get:
+        summary: Get an event's image
+        description: Returns the binary image data for an event
+        tags:
+          - Events
+        parameters:
+          - in: path
+            name: eventId
+            required: true
+            schema:
+              type: string
+            description: The ID of the event
+        responses:
+          '200':
+            description: Image data returned successfully
+            content:
+              image/*:
+                schema:
+                  type: string
+                  format: binary
+          '404':
+            description: Event not found or no image available
+          '500':
+            description: Server error
+    /event/{eventId}:
+      patch:
+        summary: Update an event
+        description: Updates specific fields of an existing event
+        tags:
+          - Events
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: eventId
+            required: true
+            schema:
+              type: string
+            description: The ID of the event to update
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The new name of the event
+                  context:
+                    type: string
+                    description: The new context for the event
+                  admins:
+                    type: array
+                    items:
+                      type: string
+                    description: Array of admin phone numbers without + sign
+                  speaker:
+                    type: string
+                    description: Optional name of the speaker for the event
+                  status:
+                    type: string
+                    enum:
+                      - active
+                      - inactive
+                      - closed
+                    description: The new status of the event
+                  metadata:
+                    type: object
+                    description: Additional JSON data for the event
+                    example:
+                      location: Online
+                      tags:
+                        - tech
+                        - launch
+                  targetDate:
+                    type: string
+                    format: date-time
+                    description: The target date for the event in the specified timezone
+                  targetTimezone:
+                    type: string
+                    description: IANA timezone string (e.g., America/Bogota)
+                    example: America/Bogota
+              example:
+                name: Updated Event Name
+                context: Updated context information
+                admins:
+                  - '34657125789'
+                  - '573103435489'
+                status: active
+                metadata:
+                  location: Online
+                  tags:
+                    - tech
+                    - launch
+        responses:
+          '200':
+            description: Event updated successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Event'
+          '400':
+            description: Invalid request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: 'Invalid status value. Must be one of: active, inactive, closed'
+          '401':
+            description: Unauthorized - Invalid or missing token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Unauthorized
+          '404':
+            description: Event not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Event not found
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Internal server error
+      get:
+        summary: Get an event by ID
+        description: Retrieves a specific event by its ID
+        tags:
+          - Events
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: eventId
+            required: true
+            schema:
+              type: string
+            description: The ID of the event to retrieve
+        responses:
+          '200':
+            description: Event retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Event'
+          '401':
+            description: Unauthorized - Invalid or missing token
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: Unauthorized
+          '404':
+            description: Event not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Event not found
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Error retrieving event
+                    error:
+                      type: string
+                      example: Error message details
+    /event/addAttendee/{eventId}:
+      post:
+        summary: Add an attendee to an event
+        description: Adds an attendee to an event by their email address
+        tags:
+          - Events
+        parameters:
+          - in: path
+            name: eventId
+            required: true
+            schema:
+              type: string
+            description: The ID of the event
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    description: The email address of the attendee
+        responses:
+          '200':
+            description: Attendee added successfully
+          '500':
+            description: Server error
+    /integration:
+      post:
+        summary: Create a new integration
+        tags:
+          - Integrations
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - name
+                  - type
+                  - companyId
+                  - config
+                properties:
+                  name:
+                    type: string
+                    description: The name of the integration
+                    example: WhatsApp Business API
+                  type:
+                    type: string
+                    description: The type of integration
+                    example: whatsapp
+                  companyId:
+                    type: string
+                    description: The ID of the companyId this integration belongs to
+                    example: 60d21b4667d0d8992e610c86
+                  config:
+                    type: object
+                    description: Integration-specific configuration
+                    oneOf:
+                      - type: object
+                        required:
+                          - accessToken
+                          - phoneNumberId
+                          - verifyToken
+                          - appSecret
+                        properties:
+                          accessToken:
+                            type: string
+                            description: WhatsApp API access token
+                          phoneNumberId:
+                            type: string
+                            description: WhatsApp phone number ID
+                          verifyToken:
+                            type: string
+                            description: Token used to verify webhook requests from WhatsApp
+                          appSecret:
+                            type: string
+                            description: Meta App Secret used to verify webhook signatures
+                      - type: object
+                        required:
+                          - openApiKey
+                          - assistantId
+                          - role
+                        properties:
+                          openApiKey:
+                            type: string
+                            description: OpenAI API key
+                          assistantId:
+                            type: string
+                            description: OpenAI Assistant ID
+                          role:
+                            type: string
+                            enum:
+                              - register
+                              - triage
+                            description: Role of the assistant behavior
+                      - type: object
+                        required:
+                          - token
+                        properties:
+                          token:
+                            type: string
+                            description: WHAPI access token
+                      - type: object
+                        required:
+                          - apiKey
+                          - workspaceId
+                        properties:
+                          apiKey:
+                            type: string
+                            description: ClickFunnels API key
+                          workspaceId:
+                            type: string
+                            description: ClickFunnels workspace ID
+        responses:
+          '201':
+            description: Integration created successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Integration'
+          '400':
+            description: Required fields are missing or invalid
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Name, type, companyId, and config are required
+          '404':
+            description: Company not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Company not found
+          '500':
+            description: Server error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: false
+                    message:
+                      type: string
+                      example: Error creating integration
+                    error:
+                      type: string
+                      example: Error message details
+      get:
+        summary: Get all integrations with filtering, sorting and pagination
+        tags:
+          - Integrations
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              minimum: 1
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 10
+            description: Number of items per page
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - name
+                - type
+                - companyId
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+          - in: query
+            name: search
+            schema:
+              type: string
+            description: Search term to filter integrations by name, type, or config fields
+          - in: query
+            name: companyId
+            schema:
+              type: string
+            description: Filter by company ID
+          - in: query
+            name: type
+            schema:
+              type: string
+              enum:
+                - whatsapp
+                - openai-assistant
+                - whapi
+                - clickfunnels
+                - twilio-sms
+                - altiria-sms
+            description: Filter by integration type
+        responses:
+          '200':
+            description: List of integrations with pagination info
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    integrations:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Integration'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of integrations
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '500':
+            description: Server error
+    /integration/{integrationId}:
+      patch:
+        summary: Update an integration
+        description: Updates specific fields of an existing integration
+        tags:
+          - Integrations
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: integrationId
+            required: true
+            schema:
+              type: string
+            description: The ID of the integration to update
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The new name of the integration
+                  companyId:
+                    type: string
+                    description: The new company ID for the integration
+                  config:
+                    type: object
+                    description: Integration-specific configuration
+                    oneOf:
+                      - type: object
+                        properties:
+                          accessToken:
+                            type: string
+                            description: WhatsApp API access token
+                          phoneNumberId:
+                            type: string
+                            description: WhatsApp phone number ID
+                          verifyToken:
+                            type: string
+                            description: Token used to verify webhook requests from WhatsApp
+                          appSecret:
+                            type: string
+                            description: Meta App Secret used to verify webhook signatures
+                      - type: object
+                        properties:
+                          openApiKey:
+                            type: string
+                            description: OpenAI API key
+                          assistantId:
+                            type: string
+                            description: OpenAI Assistant ID
+                          role:
+                            type: string
+                            enum:
+                              - register
+                              - triage
+                            description: Role of the assistant behavior
+                      - type: object
+                        properties:
+                          token:
+                            type: string
+                            description: WHAPI access token
+                      - type: object
+                        properties:
+                          apiKey:
+                            type: string
+                            description: ClickFunnels API key
+                          workspaceId:
+                            type: string
+                            description: ClickFunnels workspace ID
+        responses:
+          '200':
+            description: Integration updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Integration'
+          '400':
+            description: Invalid request
+          '404':
+            description: Integration not found
+          '500':
+            description: Server error
+      get:
+        summary: Get an integration by ID
+        description: Retrieves a specific integration by its ID
+        tags:
+          - Integrations
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: integrationId
+            required: true
+            schema:
+              type: string
+            description: The ID of the integration to retrieve
+        responses:
+          '200':
+            description: Integration retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Integration'
+          '400':
+            description: Invalid integration ID
+          '404':
+            description: Integration not found
+          '500':
+            description: Server error
+    /leads/{id}:
+      get:
+        summary: Get a lead by ID
+        tags:
+          - Leads
+        parameters:
+          - in: path
+            name: id
+            required: true
+            schema:
+              type: string
+            description: Lead ID
+        responses:
+          '200':
+            description: Lead found and returned
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Lead'
+          '404':
+            description: Lead not found
+      patch:
+        summary: Update a lead by ID (partial update)
+        tags:
+          - Leads
+        parameters:
+          - in: path
+            name: id
+            required: true
+            description: ID of the lead to update
+            schema:
+              type: string
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/LeadInput'
+                description: Partial lead data to update
+        responses:
+          '200':
+            description: Lead updated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Lead'
+          '400':
+            description: Validation or update error
+          '404':
+            description: Lead not found
+      delete:
+        summary: Delete a lead by ID
+        tags:
+          - Leads
+        parameters:
+          - in: path
+            name: id
+            required: true
+            description: Lead ID to delete
+            schema:
+              type: string
+        responses:
+          '200':
+            description: Lead deleted successfully
+          '404':
+            description: Lead not found
+          '500':
+            description: Server error
+    /leads:
+      get:
+        summary: Retrieve a list of leads with optional filters, sorting, and pagination
+        tags:
+          - Leads
+        parameters:
+          - in: query
+            name: eventId
+            schema:
+              type: string
+            description: Filter by event ID
+          - in: query
+            name: phone
+            schema:
+              type: string
+            description: Filter by phone number (partial match)
+          - in: query
+            name: email
+            schema:
+              type: string
+            description: Filter by email address (partial match)
+          - in: query
+            name: stage
+            schema:
+              type: string
+            description: Filter by lead stage
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              default: 20
+            description: Number of results per page
+          - in: query
+            name: page
+            schema:
+              type: integer
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - updatedAt
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+        responses:
+          '200':
+            description: List of leads retrieved successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Lead'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                        page:
+                          type: integer
+                        limit:
+                          type: integer
+                        pages:
+                          type: integer
+          '500':
+            description: Server error
+      post:
+        summary: Create a new lead
+        tags:
+          - Leads
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadInput'
+        responses:
+          '201':
+            description: Lead created successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/Lead'
+          '400':
+            description: Validation error
+    /leads/{id}/flags:
+      patch:
+        summary: Update lead flags (stage, follow-up status, or complete lead process status)
+        tags:
+          - Leads
+        parameters:
+          - in: path
+            name: id
+            required: true
+            schema:
+              type: string
+            description: Lead ID
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                minProperties: 1
+                properties:
+                  stage:
+                    type: string
+                    enum:
+                      - started
+                      - inquiring
+                      - lead
+                      - completed
+                      - not_interested
+                      - abandoned
+                  followUp:
+                    type: string
+                    enum:
+                      - scheduled
+                      - in-progress
+                      - completed
+                      - ''
+                  completeLeadProcess:
+                    type: string
+                    enum:
+                      - ''
+                      - scheduled
+                      - in-progress
+                      - completed
+                  followUpCount:
+                    type: number
+                    minimum: 0
+                  addedToContacts:
+                    type: string
+                    enum:
+                      - ''
+                      - success
+                      - error
+                  addedToGroup:
+                    type: string
+                    enum:
+                      - ''
+                      - success
+                      - error
+        responses:
+          '200':
+            description: Lead updated successfully
+          '400':
+            description: Invalid field value(s)
+          '404':
+            description: Lead not found
+    /leads/send-to-clickfunnels:
+      post:
+        summary: Send lead data to ClickFunnels
+        tags:
+          - Leads
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - conversationId
+                  - eventId
+                properties:
+                  conversationId:
+                    type: string
+                    description: ID of the conversation
+                  eventId:
+                    type: string
+                    description: ID of the event
+        responses:
+          '200':
+            description: Lead data sent to ClickFunnels successfully
+          '400':
+            description: Invalid request parameters
+          '404':
+            description: Conversation, event, or lead not found
+          '500':
+            description: Error sending data to ClickFunnels
+    /messaging-app/groups/next/{externalCampaignId}:
+      get:
+        summary: Get the next available message group for a campaign
+        tags:
+          - Messaging
+        parameters:
+          - in: path
+            name: externalCampaignId
+            required: true
+            schema:
+              type: string
+            description: External campaign ID
+        responses:
+          '200':
+            description: Next message group found
+          '404':
+            description: No available message groups found
+          '500':
+            description: Server error
+    /messaging-app/groups:
+      get:
+        summary: Get all message groups with filtering, sorting and pagination
+        tags:
+          - Messaging
+        parameters:
+          - in: query
+            name: page
+            schema:
+              type: integer
+              minimum: 1
+              default: 1
+            description: Page number for pagination
+          - in: query
+            name: limit
+            schema:
+              type: integer
+              minimum: 1
+              maximum: 100
+              default: 10
+            description: Number of items per page
+          - in: query
+            name: sortBy
+            schema:
+              type: string
+              enum:
+                - createdAt
+                - name
+                - targetDate
+                - status
+                - _id
+                - eventId
+              default: createdAt
+            description: Field to sort by
+          - in: query
+            name: sortOrder
+            schema:
+              type: string
+              enum:
+                - asc
+                - desc
+              default: desc
+            description: Sort order
+          - in: query
+            name: search
+            schema:
+              type: string
+            description: Search term to filter message groups by name, status, or eventId
+          - in: query
+            name: campaignId
+            schema:
+              type: string
+            description: Filter by campaign ID (will filter message groups from events belonging to this campaign)
+          - in: query
+            name: targetDateStart
+            schema:
+              type: string
+              format: date-time
+            description: Filter message groups with target date after this date
+          - in: query
+            name: targetDateEnd
+            schema:
+              type: string
+              format: date-time
+            description: Filter message groups with target date before this date
+        responses:
+          '200':
+            description: List of message groups with pagination info
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    messageGroups:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/MessageGroup'
+                    pagination:
+                      type: object
+                      properties:
+                        total:
+                          type: integer
+                          description: Total number of message groups
+                        page:
+                          type: integer
+                          description: Current page number
+                        limit:
+                          type: integer
+                          description: Number of items per page
+                        totalPages:
+                          type: integer
+                          description: Total number of pages
+          '500':
+            description: Server error
+    /messaging-app/groups/active:
+      get:
+        summary: Get all active message groups for a specific external campaign
+        tags:
+          - Messaging
+        parameters:
+          - in: query
+            name: externalCampaignId
+            required: true
+            schema:
+              type: string
+            description: External campaign ID to filter active message groups
+        responses:
+          '200':
+            description: List of active message groups
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    messageGroups:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                            description: Message group ID
+                          counter:
+                            type: number
+                            description: Message counter
+                          targetDate:
+                            type: string
+                            format: date-time
+                            description: Target date for the message group
+                          externalGroupId:
+                            type: string
+                            description: External group ID
+                          status:
+                            type: string
+                            description: Message group status
+          '400':
+            description: Invalid external campaign ID
+          '500':
+            description: Server error
+    /messaging-app/groups/{groupId}:
+      get:
+        summary: Get a message group by ID
+        tags:
+          - Messaging
+        parameters:
+          - in: path
+            name: groupId
+            required: true
+            schema:
+              type: string
+            description: The ID of the message group
+        responses:
+          '200':
+            description: Message group found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/MessageGroup'
+          '400':
+            description: Invalid groupId format
+          '404':
+            description: Message group not found
+          '500':
+            description: Server error
+      patch:
+        summary: Update a message group by ID (only allowed fields)
+        tags:
+          - Messaging
+        parameters:
+          - in: path
+            name: groupId
+            required: true
+            schema:
+              type: string
+            description: The ID of the message group
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - scheduled
+                      - active
+                      - closed
+                      - error
+                      - inactive
+                  link:
+                    type: string
+                  order:
+                    type: number
+                  capacity:
+                    type: number
+                  counter:
+                    type: number
+                  externalGroupId:
+                    type: string
+                  name:
+                    type: string
+        responses:
+          '200':
+            description: Message group updated
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    data:
+                      $ref: '#/components/schemas/MessageGroup'
+          '400':
+            description: Invalid input
+          '404':
+            description: Message group not found
+          '500':
+            description: Server error
+    /messaging-app/groups/recalculate-capacity:
+      post:
+        summary: Recalculate message group capacity for a campaign
+        tags:
+          - Messaging
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - campaignId
+                properties:
+                  campaignId:
+                    type: string
+                    description: The campaign ID to recalculate capacity for
+        responses:
+          '200':
+            description: Message group capacity recalculated successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Message group capacity recalculated successfully
+          '400':
+            description: Invalid input
+          '404':
+            description: Campaign not found
+          '500':
+            description: Server error
+    /messaging-app/groups/{groupId}/validate-link:
+      post:
+        summary: Validate a specific WhatsApp group link
+        description: Validates the link of a specific WhatsApp group using its ID.
+        tags:
+          - Messaging
+        parameters:
+          - in: path
+            name: groupId
+            required: true
+            schema:
+              type: string
+            description: The ID of the message group
+        responses:
+          '200':
+            description: Group link successfully validated
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Group link for My Group validated.
+    /messaging-app/groups/{groupId}/assign-participants:
+      post:
+        summary: Update participant information for participants of group
+        description: Update participant information for participants of group
+        tags:
+          - Messaging
+        parameters:
+          - in: path
+            name: groupId
+            required: true
+            schema:
+              type: string
+            description: The ID of the message group
+        responses:
+          '200':
+            description: Did update all participants
+            content:
+              application/json:
+                schema:
+                  type: object
+    /webhook/whatsapp:
+      get:
+        summary: Verify WhatsApp webhook
+        tags:
+          - Webhooks
+        parameters:
+          - in: query
+            name: hub.mode
+            schema:
+              type: string
+            required: true
+            description: The mode of the webhook verification
+          - in: query
+            name: hub.verify_token
+            schema:
+              type: string
+            required: true
+            description: The verification token
+          - in: query
+            name: hub.challenge
+            schema:
+              type: string
+            required: true
+            description: The challenge string to be echoed back
+        responses:
+          '200':
+            description: Webhook verified successfully
+            content:
+              text/plain:
+                schema:
+                  type: string
+                  example: challenge_string
+          '403':
+            description: Invalid verification token
+  tags:
+    - name: Campaign
+      description: Campaign management endpoints
+    - name: Communication Plan
+      description: Communication plan management
+    - name: Communication Schedule
+      description: Communication Schedule management endpoints
+    - name: Communication Template
+      description: Communication template management
+    - name: Conversation
+      description: Conversation management endpoints
+    - name: Events
+      description: Event management endpoints
+    - name: Leads
+      description: Lead management endpoints
